@@ -40,6 +40,30 @@ const userSchema = new mongoose.Schema({
         return token;
     };
 
+    userSchema.statics.findByToken = async function(token){
+        let User = this;
+        var decoded;
+
+        try{
+            decoded = jwt.verify(token, process.env.JWT_SECRET)
+        }
+        catch(err){
+            return Promise.reject();
+             console.log(err);
+        }
+         try{
+             const foundUser = await User.findOne({
+                 '_id': decoded._id,
+                 'tokens.token': token,
+                 'tokens.access': 'auth'
+             })
+             return foundUser;
+         }catch(err){
+             return Promise.reject(); 
+             console.log(err);
+         }
+    };
+
     userSchema.statics.findByCredentials = async function(email, password) {
         let User = this;
        

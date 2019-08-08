@@ -16,6 +16,7 @@ const authenticate = async (req, res, next)  => {
             next();
         } catch (err) {
             res.status(401).send({ error: `Authentication failed. Did you login?`})
+            console.log(err);
         }
     }
 
