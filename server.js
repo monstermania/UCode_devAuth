@@ -6,8 +6,8 @@ const
     app = express(),
     bodyParser = require('body-parser'),
     path = require('path'),
-    {User} = require('./models/user'),
-    {authenticate} = require('./middleware/authenticate'),
+    User = require('./models/user'),
+    authenticate = require('./middleware/authenticate'),
     PORT = process.env.PORT || 3000;
 
 // Connect database
@@ -55,16 +55,17 @@ app.use(express.static(__dirname + '../public/views'));
 app.post('/users/login', async (req, res) => {
     console.log(`Finding user email: ${req.body.email} and password ${req.body.password} for login`);
     try {
-    const user = await User.findByCredentials(req.body.email, req.body.password);
+        const user = await User.findByCredentials(req.body.email, req.body.password);
 
-    const createdToken = await user.generateAuthToken();
+        const createdToken = await user.generateAuthToken();
 
-    
-    res.status(200).header('x-auth', createdToken).send(user);
+        
+        res.status(200).header('x-auth', createdToken).send(user);
     } catch (err) {
     res.status(400).send({errorMsg: err});
+    console.log(err)
     }
-    })
+})
 
 // Listening on Port
 app.listen(PORT, err => {
