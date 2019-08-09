@@ -56,14 +56,13 @@ app.post('/users/login', async (req, res) => {
     console.log(`Finding user email: ${req.body.email} and password ${req.body.password} for login`);
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password);
-
+        console.log(`This is my user found: ${user}`)
         const createdToken = await user.generateAuthToken();
-
         
         res.status(200).header('x-auth', createdToken).send(user);
     } catch (err) {
     res.status(400).send({errorMsg: err});
-    console.log(err)
+    console.log(`This is my error: ${err}`)
     }
 })
 

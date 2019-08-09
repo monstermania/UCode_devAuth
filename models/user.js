@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken');
+const bcrypt =require('bcryptjs')
 
 const userSchema = new mongoose.Schema({
     email:{
@@ -39,7 +40,7 @@ const userSchema = new mongoose.Schema({
         
         return token;
     };
-
+    //Async- 
     userSchema.statics.findByToken = async function(token){
         let User = this;
         var decoded;
@@ -64,23 +65,51 @@ const userSchema = new mongoose.Schema({
          }
     };
 
+
+
     userSchema.statics.findByCredentials = async function(email, password) {
         let User = this;
        
         try{
-            // console.log("Trying to find by Credentials")
-            const foundUser = await User.findOne({ email: email, password: password});
-
-            // console.log(foundUser);
-    
+        const foundUser = await User.findOne({email});
         if(!foundUser){
-            return Promise.reject()
-        }
+            return Promise.reject();
+        }const matchedPw = await foundUser.comparePassword(password);
+        console.log(`matchedPw: ${matchedPw}`);
+        console.log(`foundUser: ${foundUser}`);
         return Promise.resolve(foundUser);
-        }catch(err){
-            return Promise.reject(err);
+        } 
+        catch(err){
+            return Promise.reject();
+            console.log(err);
         }
     }
+
+
+    userSchema.methods.comparePassword = async function(password) {
+        const match = await bcrypt.compare(password, this.password);
+        if(!match){
+            console.log(`passwrd is invalid`)
+            return Promise.reject();
+        }console.log(`comparePassword match is: ${match}`)
+        console.log(`Success Password is a match!`)
+        return Promise.resolve(match);
+    }
+
+    userSchema.pre('save', function(next){
+        let user = this;
+        if(user.isModified('password')) {
+            bcrypt.genSalt(10, (err, salt)=>{
+                bcrypt.hash(user.password, salt, (err, hash)=>{
+                    user.password = hash;
+                    next()
+                }); 
+            });
+        }
+        else{
+            next();
+        }
+    });
 
 const User = mongoose.model('User', userSchema);
 
