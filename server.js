@@ -8,6 +8,7 @@ const
     path = require('path'),
     User = require('./models/user'),
     authenticate = require('./middleware/authenticate'),
+    hbs = require('hbs'),
     PORT = process.env.PORT || 3000;
 
 // Connect database
@@ -18,6 +19,8 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); 
 app.use(express.static(__dirname + '../public/views'));
+
+app.set('view engine', 'hbs');
 // Routes
     // HOME Route
     app.get('/', (req, res) => {
@@ -33,11 +36,14 @@ app.use(express.static(__dirname + '../public/views'));
     })
 
     //create user route
-    app.post('/user/create', async (req, res) =>{
+    app.post('/users/create', async (req, res) =>{
        console.log(req.body); 
 
        let user = new User({
            email: req.body.email,
+           firstName: req.body.firstName,
+           lastName: req.body.lastName,
+           username: req.body.username,
            password: req.body.password
        });
 
@@ -65,6 +71,25 @@ app.post('/users/login', async (req, res) => {
     console.log(`This is my error: ${err}`)
     }
 })
+
+
+// Viewing User data on an html page
+app.get('/user/:username', async (req, res) => {
+    console.log(req.params.username);
+    try {
+        const foundUser = await User.find({ username: req.params.username })
+        console.log(foundUser);
+        res.render('user.hbs', {
+        username: foundUser[0].username,
+        email: foundUser[0].email,
+        firstName: foundUser[0].firstName,
+        lastName: foundUser[0].lastName
+        })
+    } catch (err) {
+        res.status(404).send(`<h2> No person with the usernmae ${req.params.username} found.<h2>`)
+    }
+})
+
 
 // Listening on Port
 app.listen(PORT, err => {
